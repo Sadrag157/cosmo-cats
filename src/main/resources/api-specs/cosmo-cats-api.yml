@@ -84,10 +84,11 @@ paths:
       - name: id
         in: path
         required: true
-        description: Product identifier.
+        description: Product identifier. Must be a positive number.
         schema:
           type: integer
           format: int64
+          minimum: 1
           example: 1
     get:
       tags:
@@ -209,8 +210,8 @@ components:
           type: string
           minLength: 3
           maxLength: 100
-          pattern: '^.*([Ss][Tt][Aa][Rr]|[Gg][Aa][Ll][Aa][Xx][Yy]|[Cc][Oo][Mm][Ee][Tt]|[Cc][Oo][Ss][Mm][Ii][Cc]|[Nn][Ee][Bb][Uu][Ll][Aa]|[Oo][Rr][Bb][Ii][Tt]|[Pp][Ll][Aa][Nn][Ee][Tt]|[Mm][Oo][Oo][Nn]|[Mm][Ee][Tt][Ee][Oo][Rr]|[Aa][Ss][Tt][Ee][Rr][Oo][Ii][Dd]|[Nn][Oo][Vv][Aa]|[Qq][Uu][Aa][Ss][Aa][Rr]|[Gg][Rr][Aa][Vv][Ii][Tt][Yy]|[Ss][Pp][Aa][Cc][Ee]).*$'
-          description: Must contain at least one cosmic term (star, galaxy, comet, cosmic, nebula, orbit, planet, moon, meteor, asteroid, nova, quasar, gravity, space), ignoring case.
+          pattern: '^(.*[^A-Za-z])?([Ss][Tt][Aa][Rr]|[Gg][Aa][Ll][Aa][Xx][Yy]|[Cc][Oo][Mm][Ee][Tt]|[Cc][Oo][Ss][Mm][Ii][Cc]|[Nn][Ee][Bb][Uu][Ll][Aa]|[Oo][Rr][Bb][Ii][Tt]|[Pp][Ll][Aa][Nn][Ee][Tt]|[Mm][Oo][Oo][Nn]|[Mm][Ee][Tt][Ee][Oo][Rr]|[Aa][Ss][Tt][Ee][Rr][Oo][Ii][Dd]|[Nn][Oo][Vv][Aa]|[Qq][Uu][Aa][Ss][Aa][Rr]|[Gg][Rr][Aa][Vv][Ii][Tt][Yy]|[Ss][Pp][Aa][Cc][Ee])[Ss]?([^A-Za-z].*)?$'
+          description: Must contain at least one cosmic term as a whole word, optionally with a plural "s" (star, galaxy, comet, cosmic, nebula, orbit, planet, moon, meteor, asteroid, nova, quasar, gravity, space), ignoring case.
           example: Anti-Gravity Yarn Ball
         description:
           type: string

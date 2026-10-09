@@ -9,6 +9,7 @@ import com.cosmocats.marketplace.web.mapper.ProductMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,18 +60,18 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ProductResponse get(@PathVariable("id") Long id) {
+    public ProductResponse get(@PathVariable("id") @Positive Long id) {
         return productMapper.toDto(productService.findById(id));
     }
 
     @PutMapping("/{id}")
-    public ProductResponse update(@PathVariable("id") Long id, @Valid @RequestBody ProductRequest request) {
+    public ProductResponse update(@PathVariable("id") @Positive Long id, @Valid @RequestBody ProductRequest request) {
         Product updated = productService.update(id, productMapper.toDomain(request, id));
         return productMapper.toDto(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") @Positive Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
