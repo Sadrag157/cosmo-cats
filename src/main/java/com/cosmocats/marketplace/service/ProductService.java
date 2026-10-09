@@ -18,21 +18,19 @@ public class ProductService {
     private final AtomicLong idSequence = new AtomicLong();
 
     public ProductService() {
-        create(new Product(null, "Anti-Gravity Yarn Ball",
+        store(new Product(null, "Anti-Gravity Yarn Ball",
                 "A weightless yarn ball that floats around the living room.",
                 new BigDecimal("19.99"), 1L, 120));
-        create(new Product(null, "Cosmic Milk",
+        store(new Product(null, "Cosmic Milk",
                 "Creamy milk with a faint galactic glow.",
                 new BigDecimal("4.50"), 2L, 300));
-        create(new Product(null, "Comet Tail Scratcher",
+        store(new Product(null, "Comet Tail Scratcher",
                 "A scratching post made from a real comet tail.",
                 new BigDecimal("34.00"), 1L, 45));
     }
 
     public Product create(Product product) {
-        Product stored = product.withId(idSequence.incrementAndGet());
-        products.put(stored.id(), stored);
-        return stored;
+        return store(product);
     }
 
     public List<Product> findPage(int page, int size) {
@@ -68,5 +66,11 @@ public class ProductService {
         if (products.remove(id) == null) {
             throw new ProductNotFoundException(id);
         }
+    }
+
+    private Product store(Product product) {
+        Product stored = product.withId(idSequence.incrementAndGet());
+        products.put(stored.id(), stored);
+        return stored;
     }
 }
