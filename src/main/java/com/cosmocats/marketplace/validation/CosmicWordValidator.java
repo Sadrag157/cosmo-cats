@@ -21,7 +21,7 @@ public class CosmicWordValidator implements ConstraintValidator<CosmicWordCheck,
             return true;
         }
         String normalized = value.toLowerCase(Locale.ROOT);
-        return COSMIC_TERMS.stream().anyMatch(normalized::contains);
+        return NON_LETTERS.splitAsStream(normalized).anyMatch(CosmicWordValidator::isCosmicWord);
     }
 
     private static boolean isCosmicWord(String word) {
