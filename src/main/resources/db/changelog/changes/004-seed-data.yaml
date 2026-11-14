@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-seed-categories
+      author: cosmocats
+      context: seed
+      changes:
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: categories_seq
+              - column:
+                  name: name
+                  value: Cat Toys
+              - column:
+                  name: description
+                  value: Toys for demanding space cats
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: categories_seq
+              - column:
+                  name: name
+                  value: Cosmic Food
+              - column:
+                  name: description
+                  value: Food from beyond the atmosphere
+  - changeSet:
+      id: 004-seed-products
+      author: cosmocats
+      context: seed
+      changes:
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: products_seq
+              - column:
+                  name: product_name
+                  value: Anti-Gravity Yarn Ball
+              - column:
+                  name: description
+                  value: A weightless yarn ball that floats around the living room.
+              - column:
+                  name: price
+                  valueNumeric: 19.99
+              - column:
+                  name: category_id
+                  valueComputed: "(SELECT id FROM categories WHERE name = 'Cat Toys')"
+              - column:
+                  name: stock
+                  valueNumeric: 120
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: products_seq
+              - column:
+                  name: product_name
+                  value: Cosmic Milk
+              - column:
+                  name: description
+                  value: Creamy milk with a faint galactic glow.
+              - column:
+                  name: price
+                  valueNumeric: 4.50
+              - column:
+                  name: category_id
+                  valueComputed: "(SELECT id FROM categories WHERE name = 'Cosmic Food')"
+              - column:
+                  name: stock
+                  valueNumeric: 300
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: products_seq
+              - column:
+                  name: product_name
+                  value: Comet Tail Scratcher
+              - column:
+                  name: description
+                  value: A scratching post made from a real comet tail.
+              - column:
+                  name: price
+                  valueNumeric: 34.00
+              - column:
+                  name: category_id
+                  valueComputed: "(SELECT id FROM categories WHERE name = 'Cat Toys')"
+              - column:
+                  name: stock
+                  valueNumeric: 45

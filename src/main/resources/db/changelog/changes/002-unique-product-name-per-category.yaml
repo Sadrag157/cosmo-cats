@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-unique-product-name-per-category
+      author: cosmocats
+      changes:
+        - addUniqueConstraint:
+            constraintName: uq_products_category_name
+            tableName: products
+            columnNames: category_id, product_name
