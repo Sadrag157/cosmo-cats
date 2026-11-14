@@ -2,9 +2,12 @@ package com.cosmocats.marketplace.web;
 
 import com.cosmocats.marketplace.domain.Product;
 import com.cosmocats.marketplace.domain.ProductNotFoundException;
+import com.cosmocats.marketplace.domain.CategoryNotFoundException;
+import com.cosmocats.marketplace.domain.DuplicateProductException;
 import com.cosmocats.marketplace.service.ProductService;
 import com.cosmocats.marketplace.web.mapper.ProductMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -378,5 +381,44 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.detail").value("An unexpected error occurred."))
                 .andExpect(jsonPath("$.instance").value("/api/products/1"))
                 .andExpect(content().string(not(containsString("secret internal failure"))));
+    }
+
+    @Test
+    void createWithDuplicateNameReturns409() throws Exception {
+        when(productService.create(any(Product.class))).thenThrow(new DuplicateProductException("Star Mug", 1L));
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_BODY))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.type").value(ERROR_BASE + "conflict"))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.detail").value("Product with name 'Star Mug' already exists in category 1."))
+                .andExpect(jsonPath("$.instance").value("/api/products"));
+    }
+
+    @Test
+    void createWithUnknownCategoryReturns400() throws Exception {
+        when(productService.create(any(Product.class))).thenThrow(new CategoryNotFoundException(99L));
+
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(VALID_BODY))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.type").value(ERROR_BASE + "validation"))
+                .andExpect(jsonPath("$.detail").value("Field 'categoryId' category with id 99 does not exist."))
+                .andExpect(jsonPath("$.errors[0].field").value("categoryId"));
+    }
+
+    @Test
+    void dataIntegrityViolationReturns409WithoutLeakingDetails() throws Exception {
+        doThrow(new DataIntegrityViolationException("fk_order_items_product")).when(productService).delete(1L);
+
+        mockMvc.perform(delete("/api/products/1"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.type").value(ERROR_BASE + "conflict"))
+                .andExpect(jsonPath("$.detail").value("The request conflicts with existing data."))
+                .andExpect(content().string(not(containsString("fk_order_items_product"))));
     }
 }
