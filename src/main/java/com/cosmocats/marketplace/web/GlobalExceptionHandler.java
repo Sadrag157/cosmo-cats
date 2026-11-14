@@ -2,6 +2,9 @@ package com.cosmocats.marketplace.web;
 
 import com.cosmocats.marketplace.domain.ProductNotFoundException;
 import com.cosmocats.marketplace.web.dto.FieldViolation;
+import com.cosmocats.marketplace.domain.CategoryNotFoundException;
+import com.cosmocats.marketplace.domain.DuplicateProductException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -45,6 +48,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = problem(HttpStatus.NOT_FOUND, "not-found", "Product not found",
                 "Product with id " + ex.getProductId() + " was not found.", request);
         return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<Object> handleCategoryNotFound(CategoryNotFoundException ex, WebRequest request) {
+        FieldViolation violation = new FieldViolation("categoryId",
+                "category with id " + ex.getCategoryId() + " does not exist");
+        return validationResponse(ex, List.of(violation), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(DuplicateProductException.class)
+    public ResponseEntity<Object> handleDuplicateProduct(DuplicateProductException ex, WebRequest request) {
+        ProblemDetail problem = problem(HttpStatus.CONFLICT, "conflict", "Conflict",
+                "Product with name '" + ex.getProductName() + "' already exists in category "
+                        + ex.getCategoryId() + ".", request);
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex,
+                                                               WebRequest request) {
+        log.warn("Data integrity violation while processing request to {}", requestPath(request), ex);
+        ProblemDetail problem = problem(HttpStatus.CONFLICT, "conflict", "Conflict",
+                "The request conflicts with existing data.", request);
+        return handleExceptionInternal(ex, problem, new HttpHeaders(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(Exception.class)

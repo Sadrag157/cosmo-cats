@@ -1,76 +1,83 @@
 package com.cosmocats.marketplace.service;
 
+import com.cosmocats.marketplace.domain.CategoryNotFoundException;
+import com.cosmocats.marketplace.domain.DuplicateProductException;
 import com.cosmocats.marketplace.domain.Product;
 import com.cosmocats.marketplace.domain.ProductNotFoundException;
+import com.cosmocats.marketplace.persistence.entity.CategoryEntity;
+import com.cosmocats.marketplace.persistence.entity.ProductEntity;
+import com.cosmocats.marketplace.persistence.repository.CategoryRepository;
+import com.cosmocats.marketplace.persistence.repository.ProductRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class ProductService {
 
-    private final Map<Long, Product> products = new ConcurrentHashMap<>();
-    private final AtomicLong idSequence = new AtomicLong();
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductService() {
-        store(new Product(null, "Anti-Gravity Yarn Ball",
-                "A weightless yarn ball that floats around the living room.",
-                new BigDecimal("19.99"), 1L, 120));
-        store(new Product(null, "Cosmic Milk",
-                "Creamy milk with a faint galactic glow.",
-                new BigDecimal("4.50"), 2L, 300));
-        store(new Product(null, "Comet Tail Scratcher",
-                "A scratching post made from a real comet tail.",
-                new BigDecimal("34.00"), 1L, 45));
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public Product create(Product product) {
-        return store(product);
+        CategoryEntity category = loadCategory(product.categoryId());
+        if (productRepository.existsByCategoryIdAndName(product.categoryId(), product.name())) {
+            throw new DuplicateProductException(product.name(), product.categoryId());
+        }
+        ProductEntity entity = new ProductEntity(product.name(), product.description(), product.price(),
+                category, product.stock());
+        return productRepository.save(entity).toDomain();
     }
 
+    @Transactional(readOnly = true)
     public List<Product> findPage(int page, int size) {
-        long offset = (long) page * size;
-        return products.values().stream()
-                .sorted(Comparator.comparing(Product::id))
-                .skip(offset)
-                .limit(size)
+        return productRepository.findAll(PageRequest.of(page, size, Sort.by("id"))).stream()
+                .map(ProductEntity::toDomain)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public long count() {
-        return products.size();
+        return productRepository.count();
     }
 
+    @Transactional(readOnly = true)
     public Product findById(Long id) {
-        Product product = products.get(id);
-        if (product == null) {
-            throw new ProductNotFoundException(id);
-        }
-        return product;
+        return loadProduct(id).toDomain();
     }
 
+    @Transactional
     public Product update(Long id, Product product) {
-        Product updated = product.withId(id);
-        if (products.replace(id, updated) == null) {
-            throw new ProductNotFoundException(id);
+        ProductEntity entity = loadProduct(id);
+        CategoryEntity category = loadCategory(product.categoryId());
+        if (productRepository.existsByCategoryIdAndNameAndIdNot(product.categoryId(), product.name(), id)) {
+            throw new DuplicateProductException(product.name(), product.categoryId());
         }
-        return updated;
+        entity.update(product.name(), product.description(), product.price(), category, product.stock());
+        return entity.toDomain();
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (products.remove(id) == null) {
+        if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException(id);
         }
+        productRepository.deleteById(id);
     }
 
-    private Product store(Product product) {
-        Product stored = product.withId(idSequence.incrementAndGet());
-        products.put(stored.id(), stored);
-        return stored;
+    private ProductEntity loadProduct(Long id) {
+        return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+    private CategoryEntity loadCategory(Long categoryId) {
+        return categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(categoryId));
     }
 }

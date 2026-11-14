@@ -11,17 +11,21 @@ class OrderTest {
 
     @Test
     void totalSumsPriceSnapshots() {
-        Order order = new Order(1L, List.of(
+        Order order = new Order(1L, "ORD-1", "cat@example.com", List.of(
                 new OrderItem(3L, "Comet Tail Scratcher", 1, new BigDecimal("34.00")),
                 new OrderItem(2L, "Cosmic Milk", 3, new BigDecimal("4.50"))), OrderStatus.NEW);
 
         assertThat(order.total()).isEqualByComparingTo("47.50");
         assertThat(order.status()).isEqualTo(OrderStatus.NEW);
+        assertThat(order.orderNumber()).isEqualTo("ORD-1");
+        assertThat(order.customerEmail()).isEqualTo("cat@example.com");
     }
 
     @Test
     void totalOfEmptyOrderIsZero() {
-        assertThat(new Order(1L, List.of(), OrderStatus.PAID).total()).isEqualByComparingTo(BigDecimal.ZERO);
+        Order order = new Order(1L, "ORD-2", "cat@example.com", List.of(), OrderStatus.PAID);
+
+        assertThat(order.total()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test

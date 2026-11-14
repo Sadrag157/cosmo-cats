@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-index-products-name
+      author: cosmocats
+      changes:
+        - createIndex:
+            indexName: idx_products_product_name
+            tableName: products
+            columns:
+              - column:
+                  name: product_name
+  - changeSet:
+      id: 003-index-orders-customer-email
+      author: cosmocats
+      changes:
+        - createIndex:
+            indexName: idx_orders_customer_email
+            tableName: orders
+            columns:
+              - column:
+                  name: customer_email
