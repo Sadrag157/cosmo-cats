@@ -77,6 +77,8 @@ paths:
                 $ref: '#/components/schemas/ProductResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /api/products/{id}:
@@ -150,7 +152,7 @@ paths:
 components:
   responses:
     BadRequest:
-      description: The request is invalid (validation failure, malformed body, or parameter of the wrong type).
+      description: The request is invalid (validation failure, malformed body, or parameter of the wrong type). The categoryId may also refer to a category that does not exist.
       content:
         application/problem+json:
           schema:
@@ -196,6 +198,21 @@ components:
                 title: Internal server error
                 status: 500
                 detail: An unexpected error occurred.
+                instance: /api/products
+    Conflict:
+      description: A product with the same name already exists in the category, or the request conflicts with existing data.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          examples:
+            duplicate:
+              summary: Duplicate product name in a category
+              value:
+                type: https://cosmo-cats.market/errors/conflict
+                title: Conflict
+                status: 409
+                detail: Product with name 'Cosmic Milk' already exists in category 2.
                 instance: /api/products
   schemas:
     ProductRequest:
